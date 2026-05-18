@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon Projet Forum & Partage</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: sans-serif; background: #f4f4f9; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 600px; }
+        h1 { color: #3b82f6; text-align: center; }
+        
+        /* Forum Style */
+        #chat-box { height: 300px; border: 1px solid #ddd; overflow-y: scroll; padding: 10px; margin-bottom: 10px; background: #fafafa; border-radius: 5px; }
+        .msg { margin-bottom: 8px; padding: 5px; border-bottom: 1px solid #eee; }
+        .msg b { color: #2563eb; }
+
+        /* Formulaire */
+        input, button { padding: 10px; margin: 5px 0; width: 100%; box-sizing: border-box; }
+        button { background: #3b82f6; color: white; border: none; cursor: pointer; border-radius: 4px; }
+        button:hover { background: #2563eb; }
+
+        /* Fichiers */
+        #file-list { margin-top: 20px; border-top: 2px solid #3b82f6; padding-top: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Forum & Fichiers 🚀</h1>
+
+    <!-- SECTION FORUM -->
+    <div id="chat-box"></div>
+    <input type="text" id="username" placeholder="Ton pseudo">
+    <input type="text" id="message" placeholder="Ton message...">
+    <button onclick="sendMessage()">Envoyer</button>
+
+    <!-- SECTION FICHIERS -->
+    <div id="file-list">
+        <h3>Partage de fichiers</h3>
+        <input type="file" id="file-input">
+        <button onclick="uploadFile()">Partager le fichier</button>
+        <div id="files-display"></div>
+    </div>
+</div>
+
+<script>
+    // --- CONFIGURATION ---
+    const SUPABASE_URL = 'TON_URL_SUPABASE'; 
+    const SUPABASE_KEY = 'TA_CLE_API_SUPABASE';
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // --- LOGIQUE FORUM ---
+    async function fetchMessages() {
+        const { data, error } = await supabase.from('messages').select('*').order('created_at', { ascending: true });
+        if (error) console.log(error);
+        
+        const chatBox = document.getElementById('chat-box');
+        chatBox.innerHTML = '';
+        data.forEach(msg => {
+            chatBox.innerHTML += `<div class="msg"><b>${msg.username}</b>: ${msg.content}</div>`;
+        });
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    async function sendMessage() {
+        const username = document.getElementById('username').value;
+        const content = document.getElementById('message').value;
+
+        if (username && content) {
+            await supabase.from('messages').insert([{ username, content }]);
+            document.getElementById('message').value = '';
+            fetchMessages();
+        }
+    }
+
+    // --- LOGIQUE FICHIERS ---
+    async function uploadFile() {
+        const fileInput = document.getElementById('file-input');
+        const file = fileInput.files[0];
+        if (!file) return;
+
+        const fileName = `${Date.now()}_${file.name}`;
+        const { data, error } = await supabase.storage.from('fichiers').upload(fileName, file);
+
+        if (error) { alert("Erreur d'envoi"); console.log(error); }
+        else { alert("Fichier envoyé !"); listFiles(); }
+    }
+
+    async function listFiles() {
+        const { data, error } = await supabase.storage.from('fichiers').list();
+        const display = document.getElementById('files-display');
+        display.innerHTML = '';
+        
+        data.forEach(file => {
+            const fileUrl = `${SUPABASE_URL}/storage/v1/object/public/fichiers/${file.name}`;
+            display.innerHTML += `<p>📄 <a href="${fileUrl}" target="_blank">${file.name}</a></p>`;
+        });
+    }
+
+    // Lancer au chargement
+    fetchMessages();
+    listFiles();
+    // Rafraîchir les messages toutes le 5 secondes
+    setInterval(fetchMessages, 5000);
+</script>
+
+</body>
+</html>
