@@ -3,45 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GoyGang67 - Private Terminal</title>
+    <title>GoyGang67 // Terminal</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
-            --bg: #0a0a0a; --panel: rgba(20, 20, 20, 0.8); --text: #00ff41; --primary: #00ff41; --accent: #ff003c;
+            --bg: #0a0a0a; --panel: rgba(15, 15, 15, 0.85); --text: #00ff41; --primary: #00ff41; --accent: #ff003c;
         }
         .light-mode {
-            --bg: #f0f0f0; --panel: rgba(255, 255, 255, 0.9); --text: #222; --primary: #3b82f6; --accent: #ef4444;
+            --bg: #e0e0e0; --panel: rgba(255, 255, 255, 0.9); --text: #111; --primary: #2563eb; --accent: #dc2626;
         }
         
-        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Courier New', Courier, monospace; background: var(--bg); color: var(--text); overflow: hidden; }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Consolas', monospace; background: var(--bg); color: var(--text); overflow: hidden; transition: 0.3s; }
 
-        /* Background Hacker Canvas */
-        #matrix { position: fixed; top: 0; left: 0; z-index: -1; width: 100%; height: 100%; opacity: 0.15; }
+        #matrix { position: fixed; top: 0; left: 0; z-index: -1; width: 100%; height: 100%; opacity: 0.2; }
 
-        .main-container { display: flex; flex-direction: column; height: 100vh; max-width: 900px; margin: 0 auto; border-left: 1px solid var(--primary); border-right: 1px solid var(--primary); background: var(--panel); backdrop-filter: blur(10px); }
+        .main-container { display: flex; flex-direction: column; height: 100vh; max-width: 800px; margin: 0 auto; border-left: 1px solid var(--primary); border-right: 1px solid var(--primary); background: var(--panel); backdrop-filter: blur(10px); box-shadow: 0 0 20px rgba(0,0,0,0.5); }
 
-        /* Header */
-        header { padding: 15px; border-bottom: 1px solid var(--primary); display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.3); }
-        .btn-theme { cursor: pointer; border: 1px solid var(--primary); background: none; color: var(--primary); padding: 5px 10px; border-radius: 5px; }
+        header { padding: 15px; border-bottom: 1px solid var(--primary); display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.4); }
+        .btn-theme { cursor: pointer; border: 1px solid var(--primary); background: none; color: var(--primary); padding: 5px 12px; border-radius: 4px; font-weight: bold; }
 
-        /* Chat Area */
-        #chat-window { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; scrollbar-width: thin; scrollbar-color: var(--primary) transparent; }
-        .message { padding: 10px; border-radius: 8px; border-left: 4px solid; background: rgba(255,255,255,0.05); position: relative; animation: fadeIn 0.3s ease; }
-        .message b { font-size: 0.9em; opacity: 0.8; }
-        .message img { max-width: 200px; border-radius: 5px; margin-top: 10px; display: block; border: 1px solid var(--primary); }
-        .controls { position: absolute; top: 5px; right: 5px; display: none; }
-        .message:hover .controls { display: block; }
-        .controls button { background: none; border: none; color: var(--accent); cursor: pointer; font-size: 12px; }
+        #chat-window { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; scrollbar-width: thin; }
+        
+        .message { padding: 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); position: relative; animation: slideIn 0.2s ease-out; }
+        .message:hover { border-color: var(--primary); }
+        .message b { color: var(--primary); font-size: 0.9em; }
+        .message img { max-width: 100%; border-radius: 4px; margin-top: 8px; border: 1px solid var(--primary); }
+        
+        .controls { position: absolute; top: 5px; right: 8px; }
+        .controls button { background: none; border: none; color: var(--accent); cursor: pointer; font-size: 11px; margin-left: 5px; opacity: 0.6; }
+        .controls button:hover { opacity: 1; text-decoration: underline; }
 
-        /* Input Area */
-        .input-bar { padding: 20px; border-top: 1px solid var(--primary); background: rgba(0,0,0,0.4); display: flex; flex-direction: column; gap: 10px; }
-        .row { display: flex; gap: 10px; }
-        input, select, button { background: rgba(0,0,0,0.5); border: 1px solid var(--primary); color: var(--text); padding: 10px; border-radius: 4px; }
-        input:focus { outline: 1px solid white; }
-        .btn-send { background: var(--primary); color: black; font-weight: bold; cursor: pointer; flex: 1; }
-        .btn-send:hover { opacity: 0.8; box-shadow: 0 0 10px var(--primary); }
+        .input-bar { padding: 15px; border-top: 1px solid var(--primary); background: rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 10px; }
+        .row { display: flex; gap: 8px; }
+        input, button { background: rgba(0,0,0,0.3); border: 1px solid var(--primary); color: var(--text); padding: 10px; border-radius: 4px; outline: none; }
+        .btn-send { background: var(--primary); color: #000; font-weight: bold; cursor: pointer; flex: 1; transition: 0.2s; }
+        .btn-send:hover { background: #fff; box-shadow: 0 0 15px var(--primary); }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
     </style>
 </head>
 <body>
@@ -50,38 +48,38 @@
 
 <div class="main-container">
     <header>
-        <div style="font-weight: bold; letter-spacing: 2px;">GOYGANG67 // TERMINAL</div>
-        <button class="btn-theme" onclick="toggleTheme()">DARK/LIGHT</button>
+        <div style="letter-spacing: 3px;">> GOYGANG67_SYSTEM</div>
+        <button class="btn-theme" onclick="toggleTheme()">MODE</button>
     </header>
 
-    <div id="chat-window">
-        <!-- Les messages arrivent ici -->
-    </div>
+    <div id="chat-window"></div>
 
     <div class="input-bar">
         <div class="row">
-            <input type="text" id="username" placeholder="Pseudo" style="width: 30%;">
-            <input type="color" id="msg-color" value="#00ff41" title="Couleur de ton texte" style="width: 50px; padding: 2px;">
-            <input type="file" id="img-input" accept="image/*" style="font-size: 0.8em; flex: 1;">
+            <input type="text" id="username" placeholder="Pseudo" style="width: 25%;">
+            <input type="color" id="msg-color" value="#00ff41" style="width: 45px; height: 38px; padding: 2px;">
+            <input type="file" id="img-input" accept="image/*" style="flex: 1; font-size: 0.8em;">
         </div>
         <div class="row">
-            <input type="text" id="message" placeholder="Entrer une commande ou un message..." style="flex: 2;">
+            <input type="text" id="message-text" placeholder="Entrer message..." style="flex: 3;">
             <button class="btn-send" onclick="sendAll()">ENVOYER</button>
         </div>
     </div>
 </div>
 
 <script>
-    // --- CONFIGURATION (METS TES INFOS ICI) ---
-    const SUPABASE_URL = 'https://ton-projet.supabase.co'; 
-    const SUPABASE_KEY = 'ta-cle-anon-ici';
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    // --- CONFIGURATION : METS TES VRAIES INFOS ICI ---
+    const S_URL = 'https://TON_PROJET.supabase.co'; 
+    const S_KEY = 'TA_CLE_ANON_PUBLIC';
+    
+    // Initialisation du client (renommé pour éviter l'erreur)
+    const supabaseClient = supabase.createClient(S_URL, S_KEY);
 
     // --- EFFET MATRIX ---
     const canvas = document.getElementById('matrix');
     const ctx = canvas.getContext('2d');
     canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()";
+    const letters = "0101010101010101";
     const fontSize = 16;
     const columns = canvas.width / fontSize;
     const drops = Array(Math.floor(columns)).fill(1);
@@ -97,26 +95,26 @@
     }
     setInterval(drawMatrix, 50);
 
-    // --- THEME ---
     function toggleTheme() { document.body.classList.toggle('light-mode'); }
 
-    // --- LOGIQUE SUPABASE ---
+    // --- FONCTIONS FORUM ---
     async function fetchMessages() {
-        const { data, error } = await supabase.from('messages').select('*').order('created_at', { ascending: true });
+        const { data, error } = await supabaseClient.from('messages').select('*').order('created_at', { ascending: true });
         if (error) return;
 
         const win = document.getElementById('chat-window');
         win.innerHTML = '';
         data.forEach(m => {
-            const isImage = m.content.startsWith('http') && (m.content.match(/\.(jpeg|jpg|gif|png)$/) != null);
+            const isImage = m.content && m.content.includes('supabase.co/storage/v1/object/public/');
             win.innerHTML += `
-                <div class="message" style="border-color: ${m.color || 'var(--primary)'}">
+                <div class="message" style="border-left: 4px solid ${m.color || 'var(--primary)'}">
                     <div class="controls">
                         <button onclick="editMsg('${m.id}')">EDIT</button>
                         <button onclick="deleteMsg('${m.id}')">DEL</button>
                     </div>
-                    <b>${m.username}</b> <span style="font-size: 10px; opacity:0.5;">${new Date(m.created_at).toLocaleTimeString()}</span><br>
-                    <div style="color: ${m.color || 'inherit'}">
+                    <b>${m.username || 'Anonyme'}</b> 
+                    <span style="font-size: 10px; opacity:0.4;">${new Date(m.created_at).toLocaleTimeString()}</span>
+                    <div style="color: ${m.color || 'inherit'}; margin-top:5px;">
                         ${isImage ? `<img src="${m.content}">` : m.content}
                     </div>
                 </div>
@@ -127,7 +125,7 @@
 
     async function sendAll() {
         const user = document.getElementById('username').value || 'Anonyme';
-        const text = document.getElementById('message').value;
+        const text = document.getElementById('message-text').value;
         const color = document.getElementById('msg-color').value;
         const file = document.getElementById('img-input').files[0];
 
@@ -135,40 +133,39 @@
 
         let finalContent = text;
 
-        // Si y'a une image
         if (file) {
             const fileName = `${Date.now()}_${file.name}`;
-            const { data, error } = await supabase.storage.from('fichiers').upload(fileName, file);
+            const { data, error } = await supabaseClient.storage.from('fichiers').upload(fileName, file);
             if (data) {
-                finalContent = `${SUPABASE_URL}/storage/v1/object/public/fichiers/${fileName}`;
+                finalContent = `${S_URL}/storage/v1/object/public/fichiers/${fileName}`;
+            } else {
+                console.error("Erreur upload:", error);
             }
         }
 
-        await supabase.from('messages').insert([{ username: user, content: finalContent, color: color }]);
-        document.getElementById('message').value = '';
+        await supabaseClient.from('messages').insert([{ username: user, content: finalContent, color: color }]);
+        document.getElementById('message-text').value = '';
         document.getElementById('img-input').value = '';
         fetchMessages();
     }
 
     async function deleteMsg(id) {
-        if(confirm("Supprimer pour tout le monde ?")) {
-            await supabase.from('messages').delete().eq('id', id);
+        if(confirm("Supprimer ce message ?")) {
+            await supabaseClient.from('messages').delete().eq('id', id);
             fetchMessages();
         }
     }
 
     async function editMsg(id) {
-        const newText = prompt("Nouveau message :");
-        if (newText) {
-            await supabase.from('messages').update({ content: newText }).eq('id', id);
+        const nt = prompt("Modifier le message :");
+        if (nt) {
+            await supabaseClient.from('messages').update({ content: nt }).eq('id', id);
             fetchMessages();
         }
     }
 
-    // Init
-    setInterval(fetchMessages, 3000);
+    setInterval(fetchMessages, 4000);
     fetchMessages();
 </script>
-
 </body>
 </html>
